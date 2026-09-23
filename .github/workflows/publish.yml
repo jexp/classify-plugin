@@ -36,5 +36,7 @@ jobs:
       # npm >= 11.5.1 required for trusted publishing; Node 24 ships npm 11.x,
       # upgrade to be safe
       - run: npm install -g npm@latest
-      # provenance is generated automatically with trusted publishing (public repo + public package)
-      - run: npm publish --access public
+      # Staged publishing: creates a staged release; a maintainer approves it on
+      # npmjs.com (or `npm stage accept`) before it goes public. Provenance is
+      # generated automatically with trusted publishing.
+      - run: npm stage publish --access public
