@@ -1,0 +1,57 @@
+{
+  "name": "classify",
+  "description": "Classifies every prompt/tool interaction (human and agent) into configurable categories via TypeSafe AI Jev; stores results in SQLite and renders 1/7/30/90-day statistics.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Michael Hunger"
+  },
+  "userConfig": {
+    "provider": {
+      "type": "string",
+      "title": "Provider",
+      "description": "Which System One API to route Jev classification calls through",
+      "options": ["typesafe", "openrouter", "vercel"],
+      "default": "typesafe"
+    },
+    "api_key": {
+      "type": "string",
+      "title": "API key",
+      "description": "Key for the selected provider (typesafe/openrouter/vercel AI gateway). Stored securely in the Keychain — alternatively export TYPESAFE_API_KEY / OPENROUTER_API_KEY / AI_GATEWAY_API_KEY yourself.",
+      "sensitive": true
+    },
+    "model": {
+      "type": "string",
+      "title": "Model",
+      "description": "System One model id (e.g. jev-latest, or typesafe-ai/jev for the Vercel gateway)",
+      "default": "jev-latest"
+    },
+    "categories": {
+      "type": "string",
+      "title": "Categories",
+      "description": "One entry per category, format 'name|short description'. Leave empty to use the built-in defaults.",
+      "multiple": true
+    },
+    "confidence_threshold": {
+      "type": "number",
+      "title": "Confidence threshold",
+      "description": "Below this confidence the row is recorded as 'uncertain'",
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    "top2_gap": {
+      "type": "number",
+      "title": "Top-2 gap",
+      "description": "If the top two category probabilities are closer than this, record as 'uncertain'",
+      "min": 0,
+      "max": 1,
+      "default": 0.05
+    },
+    "db_path": {
+      "type": "string",
+      "title": "SQLite database path",
+      "description": "Where classification records are stored",
+      "default": "~/.classify-plugin/classify.db"
+    }
+  }
+}

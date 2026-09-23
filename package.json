@@ -1,0 +1,30 @@
+{
+  "name": "classify-plugin",
+  "version": "0.1.0",
+  "description": "Claude Code plugin: classify every line sent to the LLM by category, source (human/agent) and noise, with persistent SQLite stats.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jexp/classify-plugin.git"
+  },
+  "type": "module",
+  "files": [
+    "src",
+    "scripts",
+    "hooks",
+    "commands",
+    ".claude-plugin"
+  ],
+  "engines": {
+    "node": ">=22.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@typesafe-ai/sdk": "^0.6.0"
+  },
+  "scripts": {
+    "test": "node --test test/"
+  }
+}
