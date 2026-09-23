@@ -34,13 +34,14 @@ export function evaluateAnswer(catAnswer, noiseAnswer, cfg) {
     ...(uncertain ? { uncertain_reason: reasons.join('; ') } : {}),
   };
 
+  const nLevels = Array.isArray(cfg.noiseLevels) ? cfg.noiseLevels.length : Object.keys(cfg.noiseLevels ?? {}).length;
   return {
     category: uncertain ? 'uncertain' : chosen,
     probability: top,
     category2: second?.[0] ?? null,
     probability2: second?.[1] ?? null,
     confidence,
-    noise: noiseAnswer ? noiseAnswer.score / 100 : null,
+    noise: noiseAnswer && nLevels > 1 ? noiseAnswer.score / (nLevels - 1) : null,
     details,
   };
 }
@@ -49,6 +50,11 @@ export function evaluateAnswer(catAnswer, noiseAnswer, cfg) {
 export function buildRequest(text, meta, cfg) {
   const criteria = {};
   for (const [name, desc] of Object.entries(cfg.categories)) criteria[name] = desc ?? null;
+  // Jev score criteria must be a list indexed by score from zero; accept a
+  // numeric-keyed object from user configs and normalize it.
+  const levels = Array.isArray(cfg.noiseLevels)
+    ? cfg.noiseLevels
+    : Object.entries(cfg.noiseLevels).sort((a, b) => Number(a[0]) - Number(b[0])).map(([, v]) => v);
   return {
     model: cfg.model,
     state: {
@@ -64,7 +70,7 @@ export function buildRequest(text, meta, cfg) {
       noise: {
         type: 'score',
         instructions: 'How much of this text is verbal noise that does not contribute to completing the task?',
-        criteria: cfg.noiseLevels,
+        criteria: levels,
       },
     },
   };
@@ -72,12 +78,15 @@ export function buildRequest(text, meta, cfg) {
 
 export async function classifyText(text, meta = {}, { cfg, client } = {}) {
   const config = cfg ?? loadConfig();
-  const { apiKey, baseURL } = providerCredentials(config);
-  if (!apiKey) {
-    throw new Error(`No API key for provider '${config.provider}'. Set one of the env vars: ` +
-      `${config.provider === 'typesafe' ? 'TYPESAFE_API_KEY' : config.provider === 'openrouter' ? 'OPENROUTER_API_KEY' : 'AI_GATEWAY_API_KEY'}`);
+  let c = client;
+  if (!c) { // real call: resolve credentials (env -> hook env var -> keychain/credentials file)
+    const { apiKey, baseURL } = providerCredentials(config);
+    if (!apiKey) {
+      throw new Error(`No API key for provider '${config.provider}'. Set one of the env vars: ` +
+        `${config.provider === 'typesafe' ? 'TYPESAFE_API_KEY' : config.provider === 'openrouter' ? 'OPENROUTER_API_KEY' : 'AI_GATEWAY_API_KEY'}`);
+    }
+    c = new TypeSafeClient({ apiKey, baseURL });
   }
-  const c = client ?? new TypeSafeClient({ apiKey, baseURL });
 
   const res = await c.systemOne(buildRequest(text, meta, config));
   const cat = res.answers.category;

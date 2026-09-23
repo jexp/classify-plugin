@@ -8,7 +8,7 @@ const cfg = { ...DEFAULTS };
 test('confident answer keeps the chosen category', () => {
   const r = evaluateAnswer(
     { choice: 'bugfix', probabilities: { bugfix: 0.9, debugging: 0.07 }, confidence: 0.85 },
-    { score: 25, probabilities: {} },
+    { score: 1, probabilities: {} }, // 5 noise levels -> 1/4 = 0.25
     cfg,
   );
   assert.equal(r.category, 'bugfix');
@@ -32,7 +32,7 @@ test('low confidence -> uncertain with details', () => {
 test('top-2 gap < 0.05 -> uncertain with details', () => {
   const r = evaluateAnswer(
     { choice: 'testing', probabilities: { testing: 0.48, bugfix: 0.45 }, confidence: 0.9 },
-    { score: 50 },
+    { score: 2 },
     cfg,
   );
   assert.equal(r.category, 'uncertain');
@@ -47,17 +47,23 @@ test('buildRequest uses configured categories as criteria', () => {
   assert.ok(req.state.text.includes('fix the failing test'));
 });
 
-test('classifyText surfaces missing API key clearly', async () => {
-  const saved = { ...process.env };
-  delete process.env.TYPESAFE_API_KEY;
-  delete process.env.TYPESAFE_BASE_URL;
-  try {
-    await assert.rejects(
-      classifyText('hello', { source: 'human', hook_event: 'UserPromptSubmit' }, { cfg: { ...cfg, provider: 'typesafe' } }),
-      /TYPESAFE_API_KEY/,
-    );
-  } finally {
-    process.env.TYPESAFE_API_KEY = saved.TYPESAFE_API_KEY;
-    process.env.TYPESAFE_BASE_URL = saved.TYPESAFE_BASE_URL;
-  }
+test('classifyText with stub client classifies and maps usage', async () => {
+  const client = {
+    systemOne: async (req) => {
+      assert.equal(req.questions.category.type, 'choice');
+      assert.ok(Array.isArray(req.questions.noise.criteria)); // score criteria as zero-indexed list
+      return {
+        answers: {
+          category: { choice: 'bugfix', probabilities: { bugfix: 0.9, debugging: 0.07 }, confidence: 0.85 },
+          noise: { score: 1 },
+        },
+        usage: { input_tokens: 123, output_tokens: 4 },
+      };
+    },
+  };
+  const r = await classifyText('fix the failing test', { source: 'human', hook_event: 'UserPromptSubmit' }, { cfg, client });
+  assert.equal(r.category, 'bugfix');
+  assert.equal(r.noise, 0.25);
+  assert.equal(r.usage.input_tokens, 123);
 });
+

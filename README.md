@@ -36,6 +36,10 @@ hook event and tool — plus a top-2 record for uncertain rows.
    - **API key** — stored securely in the macOS Keychain, never in settings files
    - **Categories** — one entry per line, format `name|short description` (empty = built-in defaults)
    - **Confidence threshold / Top-2 gap** — the 'uncertain' rules (defaults 0.5 / 0.05)
+   The API key set in the UI is read back by all plugin scripts: hooks get it as an env var,
+   and the slash-command scripts (`/classify-backfill`, `/classify-stats`) read it from Claude
+   Code's credential store (macOS Keychain item `Claude Code-credentials`, or
+   `~/.claude/.credentials.json` elsewhere) - no manual export needed.
 2. Alternatively just export the provider key yourself and skip the UI:
    `TYPESAFE_API_KEY` (or `OPENROUTER_API_KEY` / `AI_GATEWAY_API_KEY`).
 3. **Use it.** Every prompt you type and every tool call the agent makes is now classified in

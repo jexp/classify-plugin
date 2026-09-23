@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { readPluginSecret } from './secrets.js';
 
 export const DEFAULT_CATEGORIES = {
   planning: 'Breaking down work, proposing steps or approaches, designing a solution before implementation',
@@ -26,13 +27,14 @@ export const DEFAULTS = {
   top2Gap: 0.05,
   dbPath: '~/.classify-plugin/classify.db',
   maxTextChars: 6000,
-  noiseLevels: {
-    0: 'None — all of the text directly advances the task',
-    25: 'Slight — mostly on-task, small amounts of filler/pleasantries/repetition',
-    50: 'Moderate — half is filler, restatement, boilerplate, or off-task',
-    75: 'Heavy — most is filler, apologies, redundant output, or chatter',
-    100: 'Overwhelming — almost entirely verbal noise not contributing to task completion',
-  },
+  // Jev score criteria: a list of descriptions indexed by score from zero
+  noiseLevels: [
+    'None — all of the text directly advances the task',
+    'Slight — mostly on-task, small amounts of filler/pleasantries/repetition',
+    'Moderate — half is filler, restatement, boilerplate, or off-task',
+    'Heavy — most is filler, apologies, redundant output, or chatter',
+    'Overwhelming — almost entirely verbal noise not contributing to task completion',
+  ],
 };
 
 // provider → { envVar(s) for API key, default baseURL, default model }
@@ -160,7 +162,8 @@ export function loadConfig(projectDir = process.cwd()) {
 export function providerCredentials(cfg) {
   const prov = PROVIDERS[cfg.provider];
   const apiKey = prov.apiKeyEnv.map((v) => process.env[v]).find(Boolean)
-    ?? cfg._pluginApiKey; // Keychain-backed sensitive plugin option (CLAUDE_PLUGIN_OPTION_API_KEY)
+    ?? cfg._pluginApiKey            // hook-process env var (CLAUDE_PLUGIN_OPTION_API_KEY)
+    ?? readPluginSecret('api_key'); // Keychain / .credentials.json (for slash-command scripts)
   const baseURL = process.env.TYPESAFE_BASE_URL || prov.baseURL || undefined;
   return { apiKey, baseURL };
 }
