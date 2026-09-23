@@ -1,0 +1,15 @@
+{
+  "name": "classify-plugin",
+  "description": "Classification and analytics of human/agent interactions via TypeSafe AI Jev",
+  "owner": {
+    "name": "jexp"
+  },
+  "plugins": [
+    {
+      "name": "classify",
+      "source": "./",
+      "description": "Classifies every prompt/tool interaction (human and agent) into configurable categories via TypeSafe AI Jev; stores results in SQLite and renders 1/7/30/90-day statistics.",
+      "version": "0.1.0"
+    }
+  ]
+}

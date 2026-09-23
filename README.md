@@ -11,10 +11,26 @@ hook event and tool — plus a top-2 record for uncertain rows.
 
 ## Getting Started
 
-1. **Install the plugin** into Claude Code (e.g. from a local directory):
-   ```bash
-   claude plugin add /path/to/classify-plugin   # or add it via a marketplace
+1. **Install the plugin.** Pick one:
+
+   **From npm** (published as [`classify-plugin`](https://www.npmjs.com/package/classify-plugin)):
+   add this to `~/.claude/settings.json`:
+   ```json
+   {
+     "extraKnownMarketplaces": {
+       "classify-plugin": {
+         "source": { "source": "npm", "package": "classify-plugin" }
+       }
+     },
+     "enabledPlugins": {
+       "classify@classify-plugin": true
+     }
+   }
    ```
+
+   **From GitHub:** `claude plugin marketplace add jexp/classify-plugin` then enable `classify@classify-plugin`.
+
+   **From a local checkout:** `claude plugin add /path/to/classify-plugin`.
    On first enable, Claude Code asks for the plugin's configuration (or edit it later in `/config`):
    - **Provider** — `typesafe` (default), `openrouter`, or `vercel` (AI Gateway)
    - **API key** — stored securely in the macOS Keychain, never in settings files
