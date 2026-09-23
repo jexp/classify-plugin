@@ -25,6 +25,6 @@
     "@typesafe-ai/sdk": "^0.6.0"
   },
   "scripts": {
-    "test": "node --test test/"
+    "test": "node --test test/*.test.js"
   }
 }
