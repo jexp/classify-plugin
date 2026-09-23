@@ -25,6 +25,8 @@
     "@typesafe-ai/sdk": "^0.6.0"
   },
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "version": "node scripts/sync-version.js && git add .claude-plugin/plugin.json .claude-plugin/marketplace.json",
+    "release": "node scripts/release.js"
   }
 }
