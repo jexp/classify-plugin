@@ -1,7 +1,7 @@
 {
   "name": "classify",
   "description": "Classifies every prompt/tool interaction (human and agent) into configurable categories via TypeSafe AI Jev; stores results in SQLite and renders 1/7/30/90-day statistics.",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "author": {
     "name": "Michael Hunger"
   },
@@ -10,13 +10,17 @@
       "type": "string",
       "title": "Provider",
       "description": "Which System One API to route Jev classification calls through",
-      "options": ["typesafe", "openrouter", "vercel"],
+      "options": [
+        "typesafe",
+        "openrouter",
+        "vercel"
+      ],
       "default": "typesafe"
     },
     "api_key": {
       "type": "string",
       "title": "API key",
-      "description": "Key for the selected provider (typesafe/openrouter/vercel AI gateway). Stored securely in the Keychain — alternatively export TYPESAFE_API_KEY / OPENROUTER_API_KEY / AI_GATEWAY_API_KEY yourself.",
+      "description": "Key for the selected provider (typesafe/openrouter/vercel AI gateway). Stored securely in the Keychain \u2014 alternatively export TYPESAFE_API_KEY / OPENROUTER_API_KEY / AI_GATEWAY_API_KEY yourself.",
       "sensitive": true
     },
     "model": {
