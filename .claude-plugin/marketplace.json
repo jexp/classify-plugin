@@ -9,7 +9,7 @@
       "name": "classify",
       "source": "./",
       "description": "Classifies every prompt/tool interaction (human and agent) into configurable categories via TypeSafe AI Jev; stores results in SQLite and renders 1/7/30/90-day statistics.",
-      "version": "0.1.4"
+      "version": "0.2.0"
     }
   ]
 }
