@@ -23,7 +23,9 @@ function fmt(n) {
   return Math.round(n / 1000000) + 'M';
 }
 
-function bar(n, max, width, ch = '█') {
+let BAR_CHAR = '█';
+
+function bar(n, max, width, ch = BAR_CHAR) {
   if (!max) return '';
   const len = Math.round((n / max) * width);
   return ch.repeat(len);
@@ -35,11 +37,15 @@ function padStart(s, n) { return String(s).padStart(n); }
 function parseArgs(argv) {
   const args = { days: [1, 7, 30, 90], metric: 'count' };
   for (let i = 2; i < argv.length; i++) {
-    if (argv[i] === '--project') args.project = argv[++i];
-    else if (argv[i] === '--days') args.days = argv[++i].split(',').map(Number);
-    else if (argv[i] === '--metric') args.metric = argv[++i];
-    else if (argv[i] === '--db') args.db = argv[++i];
-    else if (argv[i] === '--list-projects') args.listProjects = true;
+    // accept both `--flag value` and `--flag=value`
+    let [flag, inlineVal] = argv[i].split(/=(.*)/s);
+    const take = () => inlineVal ?? argv[++i];
+    if (flag === '--project') args.project = take();
+    else if (flag === '--days') args.days = take().split(',').map(Number);
+    else if (flag === '--metric') args.metric = take();
+    else if (flag === '--db') args.db = take();
+    else if (flag === '--bar-char') args.barChar = take();
+    else if (flag === '--list-projects') args.listProjects = true;
   }
   if (!['count', 'tokens'].includes(args.metric)) {
     console.error(`Unknown metric '${args.metric}' (expected count or tokens)`);
@@ -98,6 +104,10 @@ function renderTable(days, byCat, metric) {
 function main() {
   const args = parseArgs(process.argv);
   const cfg = loadConfig();
+  // U+2588 is East-Asian-"ambiguous" width: some terminals render it 2 cells wide,
+  // which visually shifts rows that have bars. --bar-char (or config barChar)
+  // lets you switch to a guaranteed single-cell glyph, e.g. '#' or '='.
+  BAR_CHAR = args.barChar ?? process.env.CLAUDE_CLASSIFY_BAR_CHAR ?? cfg.barChar ?? '█';
   const db = openDb(args.db ?? cfg.dbPath);
 
   if (args.listProjects) {

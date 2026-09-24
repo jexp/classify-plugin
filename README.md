@@ -49,6 +49,7 @@ hook event and tool — plus a top-2 record for uncertain rows.
    node scripts/stats.js                              # all projects, 1/7/30/90-day windows
    node scripts/stats.js --project my-app             # one project
    node scripts/stats.js --metric tokens              # size the pyramid by token spend, not counts
+   node scripts/stats.js --bar-char='#'               # ASCII bars (see note below)
    node scripts/stats.js --list-projects              # what has data
    ```
    or from inside a session: `/classify-stats`, `/classify-stats --project my-app --metric tokens`.

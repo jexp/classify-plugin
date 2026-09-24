@@ -27,6 +27,9 @@ export const DEFAULTS = {
   top2Gap: 0.05,
   dbPath: '~/.classify-plugin/classify.db',
   maxTextChars: 6000,
+  // pyramid bar glyph; U+2588 is East-Asian-ambiguous width and looks misaligned in
+  // terminals that render ambiguous glyphs as 2 cells — set "#" (or "=") there
+  barChar: '█',
   // Jev score criteria: a list of descriptions indexed by score from zero
   noiseLevels: [
     'None — all of the text directly advances the task',
