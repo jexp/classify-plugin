@@ -40,6 +40,22 @@ hook event and tool — plus a top-2 record for uncertain rows.
    and the slash-command scripts (`/classify-backfill`, `/classify-stats`) read it from Claude
    Code's credential store (macOS Keychain item `Claude Code-credentials`, or
    `~/.claude/.credentials.json` elsewhere) - no manual export needed.
+   **Local, offline, free — Laya** (no API key at all): run a local decision model instead of
+   the hosted Jev. Laya's `laya.serve` speaks the same `/v1/systemone` protocol, so the plugin
+   just points at it:
+   ```bash
+   pip install 'laya[serve]' && LAYA_PRELOAD=1 python -m laya.serve   # or laya-mlx / laya-coreml on Apple Silicon
+   ```
+   Then set provider `laya` (port via `laya_port`, default 8080; the plugin auto-starts the
+   server via `laya_python` if it is not running). Checkpoints: `english`, `multilingual`
+   (default), `typed-decisions` — 512-1024 token context.
+   With small-context backends (and for any text longer than `maxTextChars`), the plugin uses
+   **adaptive chunk classification** (port of watfile's incremental window): the text is split
+   into ~200-token chunks, chunk 1 is classified, and further chunks are added one at a time -
+   each classified exactly once - until the winning category's running-mean probability passes
+   `adaptive_threshold` (0.5) or `adaptive_max_chunks` (10) is reached. Decisive texts cost one
+   call; ambiguous ones gather evidence; the usual uncertain rule applies to the aggregated
+   probabilities.
 2. Alternatively just export the provider key yourself and skip the UI:
    `TYPESAFE_API_KEY` (or `OPENROUTER_API_KEY` / `AI_GATEWAY_API_KEY`).
 3. **Use it.** Every prompt you type and every tool call the agent makes is now classified in

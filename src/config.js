@@ -30,6 +30,15 @@ export const DEFAULTS = {
   // pyramid bar glyph; U+2588 is East-Asian-ambiguous width and looks misaligned in
   // terminals that render ambiguous glyphs as 2 cells — set "#" (or "=") there
   barChar: '█',
+  // adaptive multi-chunk classification (port of watfile MultiChunkClassifier):
+  // extend chunk-by-chunk while the winner's mean probability is below the threshold
+  adaptiveThreshold: 0.5,
+  adaptiveMaxChunks: 10,
+  chunkTokens: 200,
+  // local laya.serve (same /v1/systemone wire protocol as hosted Jev)
+  layaHost: '127.0.0.1',
+  layaPort: 8080,
+  layaPython: 'python3',
   // Jev score criteria: a list of descriptions indexed by score from zero
   noiseLevels: [
     'None — all of the text directly advances the task',
@@ -56,6 +65,13 @@ export const PROVIDERS = {
     apiKeyEnv: ['AI_GATEWAY_API_KEY', 'VERCEL_AI_GATEWAY_API_KEY'],
     baseURL: 'https://ai-gateway.vercel.sh/typesafe',
     defaultModel: 'typesafe-ai/jev',
+  },
+  laya: {
+    // local laya.serve — same POST /v1/systemone wire protocol as hosted Jev,
+    // so the TypeSafe client works unchanged, just repointed
+    apiKeyEnv: [],
+    baseURL: null, // derived from layaHost/layaPort at call time
+    defaultModel: 'multilingual', // english | multilingual | typed-decisions
   },
 };
 
@@ -107,6 +123,16 @@ export function pluginOptions(env = process.env) {
   if (gap != null && gap !== '') out.top2Gap = Number(gap);
   const dbPath = get('db_path');
   if (dbPath) out.dbPath = dbPath;
+
+  // local laya.serve settings
+  const lh = get('laya_host'); if (lh) out.layaHost = lh;
+  const lp = get('laya_port'); if (lp != null && lp !== '') out.layaPort = Number(lp);
+  const lpy = get('laya_python'); if (lpy) out.layaPython = lpy;
+
+  // adaptive multi-chunk settings
+  const at = get('adaptive_threshold'); if (at != null && at !== '') out.adaptiveThreshold = Number(at);
+  const amc = get('adaptive_max_chunks'); if (amc != null && amc !== '') out.adaptiveMaxChunks = Number(amc);
+  const ct = get('chunk_tokens'); if (ct != null && ct !== '') out.chunkTokens = Number(ct);
 
   return out;
 }
@@ -163,6 +189,12 @@ export function loadConfig(projectDir = process.cwd()) {
 
 /** Resolve API key + baseURL for the configured provider from env vars only. */
 export function providerCredentials(cfg) {
+  if (cfg.provider === 'laya') {
+    return {
+      apiKey: process.env.LAYA_API_KEY || 'laya-local', // laya.serve only checks when LAYA_API_KEY is set server-side
+      baseURL: `http://${process.env.LAYA_HOST || cfg.layaHost || '127.0.0.1'}:${process.env.LAYA_PORT || cfg.layaPort || 8080}`,
+    };
+  }
   const prov = PROVIDERS[cfg.provider];
   const apiKey = prov.apiKeyEnv.map((v) => process.env[v]).find(Boolean)
     ?? cfg._pluginApiKey            // hook-process env var (CLAUDE_PLUGIN_OPTION_API_KEY)

@@ -13,7 +13,8 @@
       "options": [
         "typesafe",
         "openrouter",
-        "vercel"
+        "vercel",
+        "laya"
       ],
       "default": "typesafe"
     },
@@ -56,6 +57,38 @@
       "title": "SQLite database path",
       "description": "Where classification records are stored",
       "default": "~/.classify-plugin/classify.db"
+    },
+    "laya_port": {
+      "type": "number",
+      "title": "Laya server port",
+      "description": "Port of a local laya.serve instance (provider 'laya'); auto-started if not running",
+      "default": 8080
+    },
+    "laya_python": {
+      "type": "string",
+      "title": "Laya Python interpreter",
+      "description": "Interpreter used to auto-start laya.serve (must have laya/laya-mlx/laya-coreml installed)",
+      "default": "python3"
+    },
+    "adaptive_threshold": {
+      "type": "number",
+      "title": "Adaptive chunk threshold",
+      "description": "Stop extending the incremental chunk window once the winning category's mean probability reaches this",
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    "adaptive_max_chunks": {
+      "type": "number",
+      "title": "Adaptive max chunks",
+      "description": "Upper bound on chunks classified per long text",
+      "default": 10
+    },
+    "chunk_tokens": {
+      "type": "number",
+      "title": "Chunk size (tokens)",
+      "description": "Approximate tokens per chunk in adaptive mode (~4 chars per token)",
+      "default": 200
     }
   }
 }

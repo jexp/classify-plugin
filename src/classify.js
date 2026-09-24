@@ -1,5 +1,7 @@
 import { TypeSafeClient } from '@typesafe-ai/sdk';
 import { loadConfig, providerCredentials } from './config.js';
+import { adaptiveClassify, chunkText } from './adaptive.js';
+import { ensureLayaServer } from './laya.js';
 
 /**
  * Classify one line of LLM-bound text with a single Jev systemOne call:
@@ -78,8 +80,25 @@ export function buildRequest(text, meta, cfg) {
 
 export async function classifyText(text, meta = {}, { cfg, client } = {}) {
   const config = cfg ?? loadConfig();
+
+  // adaptive multi-chunk mode: laya's context is 512-1024 tokens total, and any
+  // provider silently loses the tail beyond maxTextChars — extend chunk-by-chunk
+  // (watfile-style incremental window) instead of truncating
+  const useAdaptive = config.adaptive !== false
+    && (config.provider === 'laya' || String(text ?? '').length > config.maxTextChars)
+    && chunkText(text, config.chunkTokens).length > 1;
+  if (useAdaptive) {
+    return adaptiveClassify(text, meta, { cfg: config, classify: (chunk, m) => classifyOnce(chunk, m, config, client) });
+  }
+  return classifyOnce(text, meta, config, client);
+}
+
+async function classifyOnce(text, meta, config, client) {
   let c = client;
   if (!c) { // real call: resolve credentials (env -> hook env var -> keychain/credentials file)
+    if (config.provider === 'laya') {
+      await ensureLayaServer(config); // auto-start local laya.serve if needed
+    }
     const { apiKey, baseURL } = providerCredentials(config);
     if (!apiKey) {
       throw new Error(`No API key for provider '${config.provider}'. Set one of the env vars: ` +
